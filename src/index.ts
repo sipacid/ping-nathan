@@ -1,6 +1,6 @@
-import * as dotenv from "dotenv";
+import { config } from "dotenv";
 
-dotenv.config();
+config();
 
 var previousGame = null;
 
