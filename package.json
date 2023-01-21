@@ -5,9 +5,9 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "npx ts-node src/index.ts",
-    "pm2": "tsc && pm2 start dist/index.js --name ping-nathan"
+    "pm2": "tsc && pm2 start pm2.config.js"
   },
-  "author": "",
+  "author": "sipacid",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
