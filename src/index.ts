@@ -65,17 +65,31 @@ async function run() {
 	previousPersonaState = personaState;
 }
 
-const app = express();
+const apiApp = express();
 
-app.listen("3000", () => {
+apiApp.listen("3000", () => {
 	console.log("Listening on http://localhost:3000");
 });
 
-app.get("/", (req, res) => {
+apiApp.get("/ping", (req, res) => {
 	var ip = req.headers["x-real-ip"] || req.socket.remoteAddress;
-	sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}>, you got pinged by [\`${ip}\`](<https://ipinfo.io/${ip}>).`);
+	var message = req.query.message.toString().normalize() || "I just wanted to ping you :)";
 
-	return res.send(200);
+	sendMessageToDiscord(`[[\`${ip}\`](<https://ipinfo.io/${ip}>)]: ${message} <@${process.env.TARGET_DISCORD_ID}>.`);
+
+	return res.sendStatus(200);
+});
+
+const webApp = express();
+
+webApp.use(express.static("public"));
+
+webApp.listen("3001", () => {
+	console.log("Listening on http://localhost:3001");
+});
+
+webApp.get("/", (req, res) => {
+	res.sendFile(__dirname + "/index.html");
 });
 
 setInterval(run, 1000);
