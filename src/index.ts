@@ -73,7 +73,7 @@ apiApp.listen("3000", () => {
 
 apiApp.get("/ping", (req, res) => {
 	var ip = req.headers["x-real-ip"] || req.socket.remoteAddress;
-	var message = req.query.message.toString().normalize() || "I just wanted to ping you :)";
+	var message = req.query.message.toString().normalize().replace("https://", "").replace("http://", "") || "I just wanted to ping you :)";
 
 	sendMessageToDiscord(`[[\`${ip}\`](<https://ipinfo.io/${ip}>)]: ${message} <@${process.env.TARGET_DISCORD_ID}>.`);
 
