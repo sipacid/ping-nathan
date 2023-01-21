@@ -1,4 +1,6 @@
 import { config } from "dotenv";
+import * as express from "express";
+import rateLimit from "express-rate-limit";
 
 config();
 
@@ -34,28 +36,27 @@ async function sendMessageToDiscord(message: string) {
 
 async function run() {
 	var playerSummaries = await getPlayerSummaries();
-
 	var game = playerSummaries.gameextrainfo;
 	var personaState = playerSummaries.personastate;
 
 	if (game != previousGame) {
 		if (game != null) {
-			sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is now playing ${game}.`);
+			sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is now playing ${game} on Steam.`);
 		} else {
-			sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> stopped playing ${previousGame}.`);
+			sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> stopped playing ${previousGame} on Steam.`);
 		}
 	}
 
 	if (personaState != previousPersonaState) {
 		switch (personaState) {
 			case 0:
-				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is offline.`);
+				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is now offline on Steam.`);
 				break;
 			case 1:
-				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is online.`);
+				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is now online on Steam.`);
 				break;
 			case 3:
-				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is away.`);
+				sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}> is now away on Steam.`);
 			default:
 				break;
 		}
@@ -64,5 +65,27 @@ async function run() {
 	previousGame = game;
 	previousPersonaState = personaState;
 }
+
+const app = express();
+const limiter = rateLimit({
+	windowMs: 2 * 60 * 1000, // 2 minutes
+	max: 1, // Limit each IP to 1 requests per `window`
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.set("trust proxy", 1);
+app.use(limiter);
+
+app.listen("3000", () => {
+	console.log("Listening on http://localhost:3000");
+});
+
+app.get("/", (req, res) => {
+	var ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+	sendMessageToDiscord(`<@${process.env.TARGET_DISCORD_ID}>, you got pinged by [\`${ip}\`](<https://ipinfo.io/${ip}>).`);
+
+	return res.send("yes.");
+});
 
 setInterval(run, 1000);
