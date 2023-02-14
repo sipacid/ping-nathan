@@ -24,7 +24,7 @@ export async function iCalPing() {
 
 		eventsOfToday.forEach((event) => {
 			schedule.scheduleJob(new Date(event.start), () => {
-				sendMessageToDiscord(`${event.name} has started.`);
+				sendMessageToDiscord(`NATHAN JE HEBT NU: \`${event.name}\`.`);
 			});
 		});
 	});
